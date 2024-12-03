@@ -1,9 +1,11 @@
 Flask
-Flask-SQLAlchemy
+gunicorn
+instagrapi
 celery
 redis
-instagrapi
-pyotp
+flask_sqlalchemy
 python-dotenv
-pymysql
-Pillow
+pycryptodomex
+pydantic
+PySocks
+requests
