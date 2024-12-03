@@ -1,0 +1,9 @@
+Flask
+Flask-SQLAlchemy
+celery
+redis
+instagrapi
+pyotp
+python-dotenv
+pymysql
+Pillow
