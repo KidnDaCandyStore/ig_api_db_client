@@ -10,3 +10,4 @@ pydantic
 PySocks
 requests
 pyotp
+Pillow
