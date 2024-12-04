@@ -1,11 +1,13 @@
-# In your __init__.py
+# __init__.py
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 
 from flask import Flask
 from .config import Config
 from .database import db
 from .instagram_client import InstagramClient
+from .celery_app import make_celery  # Import make_celery function
 
 def create_app():
     app = Flask(__name__)
@@ -16,9 +18,6 @@ def create_app():
     # Initialize Database
     db.init_app(app)
 
-    # Debugging: Log available attributes of InstagramClient
-    logging.debug(f"InstagramClient attributes: {dir(InstagramClient)}")
-
     # Initialize Instagram client
     InstagramClient.get_instance(
         username=Config.INSTAGRAM_USERNAME,
@@ -26,11 +25,14 @@ def create_app():
         secret_key=Config.SECRET_KEY
     )
 
+    # Initialize Celery
+    celery = make_celery(app)
+    app.celery = celery  # Optionally attach celery to app
+
     # Register Blueprints
     with app.app_context():
         from .routes import api
         app.register_blueprint(api, url_prefix='/api')
-        # Create database tables if they don't exist
         db.create_all()
 
     return app
