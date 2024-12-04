@@ -1,12 +1,13 @@
 from flask import Blueprint, request, jsonify
 from ig_api_db_client.models import User, SocialMediaAccount, Post
-from ig_api_db_client.tasks import fetch_user_data, fetch_hashtag_data
 from ig_api_db_client.database import db
 
 api = Blueprint('api', __name__)
 
 @api.route('/user/<username>', methods=['GET'])
 def get_user(username):
+    from ig_api_db_client.tasks import fetch_user_data
+    
     # Check if user data exists in the database
     user = User.query.filter_by(username=username).first()
     if user:
@@ -22,6 +23,8 @@ def get_user(username):
 
 @api.route('/hashtag/<hashtag>', methods=['GET'])
 def get_hashtag(hashtag):
+    from ig_api_db_client.tasks import fetch_hashtag_data
+    
     # Start background task to fetch hashtag data
     task = fetch_hashtag_data.delay(hashtag)
     return jsonify({'status': 'processing', 'task_id': task.id}), 202
