@@ -22,35 +22,22 @@ class InstagramClient:
             self.username = username
             self.password = password
             self.secret_key = secret_key
-            self.session_var = f'IG_SESSION_{self.username}'
             self.login()
             self.initialized = True
 
     def login(self):
         try:
-            session_data = os.getenv(self.session_var)
-            if session_data:
-                logging.info('Loading settings from environment variable')
-                self.cl.load_settings_from_dict(json.loads(session_data))
-                self.cl.login(self.username, self.password)
-                logging.info('Logged in using saved settings')
-            else:
-                logging.info('Logging into Instagram...')
-                self.cl.login(self.username, self.password)
-                logging.info("Logged in to Instagram successfully.")
-                logging.info('Saving settings to environment variable')
-                session_json = json.dumps(self.cl.export_settings_to_dict())
-                os.environ[self.session_var] = session_json
-        except exceptions.TwoFactorRequired:
+            logging.info('Attempting to login to Instagram...')
+            self.cl.login(self.username, self.password)
+            logging.info("Logged in to Instagram successfully.")
+        except exceptions.TwoFactorRequired as e:
             logging.info("Two-factor authentication required. Providing verification code.")
             totp = pyotp.TOTP(self.secret_key)
             verification_code = totp.now()
             try:
-                self.cl.two_factor_login(verification_code)
+                # Use the code received via TOTP
+                self.cl.login(self.username, self.password, verification_code=verification_code)
                 logging.info("Two-factor authentication successful.")
-                logging.info('Saving settings to environment variable')
-                session_json = json.dumps(self.cl.export_settings_to_dict())
-                os.environ[self.session_var] = session_json
             except Exception as e:
                 logging.error(f"Failed to complete two-factor authentication: {e}")
                 raise
