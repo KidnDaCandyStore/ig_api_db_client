@@ -7,7 +7,7 @@ class Config:
     INSTAGRAM_USERNAME = os.getenv('INSTAGRAM_USERNAME')
     INSTAGRAM_PASSWORD = os.getenv('INSTAGRAM_PASSWORD')
     SECRET_KEY = os.getenv('SECRET_KEY')
-    REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+    REDIS_URL = os.getenv('REDIS_URL')
 
     # Ensure REDIS_URL includes database number
     if REDIS_URL.count('/') == 2:
