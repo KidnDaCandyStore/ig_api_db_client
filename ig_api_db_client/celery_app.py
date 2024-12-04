@@ -1,11 +1,8 @@
+# celery_app.py
 from celery import Celery
 from .config import Config
 
-def make_celery(app=None):
-    if app is None:
-        from ig_api_db_client import create_app
-        app = create_app()
-        
+def make_celery(app):
     celery = Celery(
         app.import_name,
         broker=Config.CELERY_BROKER_URL,
@@ -21,5 +18,3 @@ def make_celery(app=None):
 
     celery.Task = ContextTask
     return celery
-
-celery = make_celery()
