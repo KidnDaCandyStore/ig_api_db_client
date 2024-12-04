@@ -4,7 +4,8 @@ from .config import Config
 def make_celery(app):
     celery = Celery(
         app.import_name,
-        include=['ig_api_db_client.tasks']
+        backend=app.config['CELERY_RESULT_BACKEND'],
+        broker=app.config['CELERY_BROKER_URL']
     )
     # Update Celery configuration with Flask configuration
     celery.conf.update(
