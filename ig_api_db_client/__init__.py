@@ -1,3 +1,7 @@
+# In your __init__.py
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 from flask import Flask
 from .config import Config
 from .database import db
@@ -11,6 +15,9 @@ def create_app():
 
     # Initialize Database
     db.init_app(app)
+
+    # Debugging: Log available attributes of InstagramClient
+    logging.debug(f"InstagramClient attributes: {dir(InstagramClient)}")
 
     # Initialize Instagram client
     InstagramClient.get_instance(
