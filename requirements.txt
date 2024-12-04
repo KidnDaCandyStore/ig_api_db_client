@@ -11,4 +11,4 @@ PySocks
 requests
 pyotp
 Pillow
-psycopg2
+psycopg2-binary
