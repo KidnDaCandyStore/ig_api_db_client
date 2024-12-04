@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-from .models import User, SocialMediaAccount, Post
-from .tasks import fetch_user_data, fetch_hashtag_data
-from .database import db
+from ig_api_db_client.models import User, SocialMediaAccount, Post
+from ig_api_db_client.tasks import fetch_user_data, fetch_hashtag_data
+from ig_api_db_client.database import db
 
 api = Blueprint('api', __name__)
 
