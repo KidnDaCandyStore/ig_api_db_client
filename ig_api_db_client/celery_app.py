@@ -1,19 +1,16 @@
-# celery_app.py
 from celery import Celery
 from .config import Config
 
 def make_celery(app):
     celery = Celery(
         app.import_name,
-        broker=app.config['broker_url'],
-        backend=app.config['result_backend'],
         include=['ig_api_db_client.tasks']
     )
+    # Update Celery configuration with Flask configuration
     celery.conf.update(
-        broker_url=app.config['broker_url'],
-        result_backend=app.config['result_backend'],
-        worker_log_level='INFO',  # Set the desired logging level
-        # Include other necessary Celery configurations
+        broker_url=app.config['CELERY_BROKER_URL'],
+        result_backend=app.config['CELERY_RESULT_BACKEND'],
+        # You can add other Celery configuration options here
     )
 
     class ContextTask(celery.Task):
