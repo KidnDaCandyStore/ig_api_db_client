@@ -1,10 +1,14 @@
-from ig_api_db_client.celery_app import celery
+# tasks.py
+from ig_api_db_client import create_app
+
+app = create_app()
+celery = app.celery  # Get the celery instance from the app
+
 from ig_api_db_client.instagram_client import InstagramClient
 from ig_api_db_client.models import User, SocialMediaAccount, Post, PostStat
 from ig_api_db_client.database import db
 import logging
 from datetime import datetime
-
 
 @celery.task
 def fetch_user_data(username):
