@@ -1,9 +1,11 @@
+# instagram_client.py
 import os
 import logging
 import threading
 import pyotp
 import json
 from instagrapi import Client, exceptions
+import redis
 
 class InstagramClient:
     _instance = None
@@ -22,22 +24,37 @@ class InstagramClient:
             self.username = username
             self.password = password
             self.secret_key = secret_key
+            # Initialize Redis client
+            self.redis_client = redis.Redis.from_url(os.getenv('REDIS_URL'))
+            self.session_key = f'IG_SESSION_{self.username}'
             self.login()
             self.initialized = True
 
     def login(self):
         try:
-            logging.info('Attempting to login to Instagram...')
-            self.cl.login(self.username, self.password)
-            logging.info("Logged in to Instagram successfully.")
-        except exceptions.TwoFactorRequired as e:
+            session_data = self.redis_client.get(self.session_key)
+            if session_data:
+                logging.info('Loading settings from Redis')
+                self.cl.set_settings(json.loads(session_data))
+                self.cl.login(self.username, self.password)
+                logging.info('Logged in using saved settings')
+            else:
+                logging.info('Logging into Instagram...')
+                self.cl.login(self.username, self.password)
+                logging.info("Logged in to Instagram successfully.")
+                logging.info('Saving settings to Redis')
+                session_json = json.dumps(self.cl.get_settings())
+                self.redis_client.set(self.session_key, session_json)
+        except exceptions.TwoFactorRequired:
             logging.info("Two-factor authentication required. Providing verification code.")
             totp = pyotp.TOTP(self.secret_key)
             verification_code = totp.now()
             try:
-                # Use the code received via TOTP
                 self.cl.login(self.username, self.password, verification_code=verification_code)
                 logging.info("Two-factor authentication successful.")
+                logging.info('Saving settings to Redis')
+                session_json = json.dumps(self.cl.get_settings())
+                self.redis_client.set(self.session_key, session_json)
             except Exception as e:
                 logging.error(f"Failed to complete two-factor authentication: {e}")
                 raise
@@ -47,14 +64,3 @@ class InstagramClient:
         except Exception as e:
             logging.error(f"Failed to login to Instagram: {e}")
             raise
-
-    @classmethod
-    def get_instance(cls, username=None, password=None, secret_key=None):
-        if cls._instance is None:
-            if not all([username, password, secret_key]):
-                raise ValueError("InstagramClient not initialized. Provide username, password, and secret_key.")
-            cls(username, password, secret_key)
-        return cls._instance
-
-    def get_client(self):
-        return self.cl
