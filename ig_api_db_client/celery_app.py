@@ -1,23 +1,26 @@
+# celery.py
 from celery import Celery
-from .config import Config
+from ig_api_db_client.config import Config
 
-def make_celery(app):
+def make_celery():
     celery = Celery(
-        app.import_name,
-        backend=app.config['CELERY_RESULT_BACKEND'],
-        broker=app.config['CELERY_BROKER_URL']
+        'ig_api_db_client',
+        broker=Config.CELERY_BROKER_URL,
+        backend=Config.CELERY_RESULT_BACKEND
     )
-    # Update Celery configuration with Flask configuration
     celery.conf.update(
-        broker_url=app.config['CELERY_BROKER_URL'],
-        result_backend=app.config['CELERY_RESULT_BACKEND'],
-        # You can add other Celery configuration options here
+        broker_url=Config.CELERY_BROKER_URL,
+        result_backend=Config.CELERY_RESULT_BACKEND,
+        task_serializer='json',
+        accept_content=['json'],
+        result_serializer='json',
+        timezone='UTC',
+        enable_utc=True,
     )
-
-    class ContextTask(celery.Task):
-        def __call__(self, *args, **kwargs):
-            with app.app_context():
-                return self.run(*args, **kwargs)
-
-    celery.Task = ContextTask
+    
+    # Autodiscover tasks from all registered Django app configs.
+    celery.autodiscover_tasks(['ig_api_db_client.tasks'])
+    
     return celery
+
+celery = make_celery()
